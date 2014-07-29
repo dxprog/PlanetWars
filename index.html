@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf8" />
+		<title>Planet Wars</title>
+		<style type="text/css">
+			#screen { position:relative; width:800px; height:600px; }
+			canvas { display:block; position:absolute; left:0; top:0; }
+		</style>
+	</head>
+	<body>
+		<div id="screen">
+			<canvas id="bg" width="800" height="600"></canvas>
+			<canvas id="planets" width="800" height="600"></canvas>
+			<canvas id="ships" width="800" height="600"></canvas>
+			<canvas id="missiles" width="800" height="600"></canvas>
+		</div>
+		<input type="text" id="name" />
+		<input type="angle" id="angle" />
+		<input type="speed" id="speed" />
+		<button id="fire">Fire</button>
+		<script type="text/javascript" src="main.js"></script>
+	</body>
+</html>
