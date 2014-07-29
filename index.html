@@ -4,21 +4,94 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=utf8" />
 		<title>Planet Wars</title>
 		<style type="text/css">
+            body {
+                background: #000;
+            }
+
+            #container {
+                width: 1020px;
+                height: 600px;
+                margin: auto;
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                right: 0;
+            }
+
 			#screen { position:relative; width:800px; height:600px; }
 			canvas { display:block; position:absolute; left:0; top:0; }
+            #rightBar {
+                position: absolute;
+                left: 820px;
+                top: 0;
+                height: 600px;
+                width: 200px;
+                background: #000;
+            }
+            label {
+                color: #fff;
+                font: 16px 'Fixed Sys', Consolas, monospace;
+                display: block;
+            }
+
+            .section {
+                display: none;
+            }
+            
+            .player-count #playerCount {
+                display: block;
+            }
+
+            .player-names #playerNames {
+                display: block;
+            }
+
+            .in-game #inGame {
+                display: block;
+            }
+
+            p {
+                font: 16px'Fixed Sys', Consolas, monospace;
+                margin: 0 0 20px;
+            }
+
 		</style>
 	</head>
 	<body>
-		<div id="screen">
-			<canvas id="bg" width="800" height="600"></canvas>
-			<canvas id="planets" width="800" height="600"></canvas>
-			<canvas id="ships" width="800" height="600"></canvas>
-			<canvas id="missiles" width="800" height="600"></canvas>
-		</div>
-		<input type="text" id="name" />
-		<input type="angle" id="angle" />
-		<input type="speed" id="speed" />
-		<button id="fire">Fire</button>
-		<script type="text/javascript" src="main.js"></script>
+        <div id="container" class="player-count">
+    		<div id="screen">
+    			<canvas id="bg" width="800" height="600"></canvas>
+    			<canvas id="planets" width="800" height="600"></canvas>
+    			<canvas id="ships" width="800" height="600"></canvas>
+    			<canvas id="missiles" width="800" height="600"></canvas>
+    		</div>
+            <div id="rightBar">
+                <div id="playerCount" class="section">
+                    <label for="count">Number of Players</label>
+                    <select id="count">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                    </select>
+                    <button id="toPlayerNames">Next</button>
+                </div>
+                <div id="playerNames" class="section">
+                    <label for="name" id="nameLabel">Player x Name</label>
+                    <input type="text" id="name" />
+                    <button id="addPlayer">Okay</button>
+                </div>
+        		<div id="inGame" class="section">
+                    <p id="currentPlayer">Name</p>
+                    <label for="angle">Angle</label>
+            		<input type="angle" id="angle" />
+                    <label for="speed">Speed</label>
+            		<input type="speed" id="speed" />
+            		<button id="fire">Fire</button>
+                </div>
+            </div>
+        <script type="text/javascript" src="main.js"></script>
 	</body>
 </html>

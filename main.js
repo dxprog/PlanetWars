@@ -13,7 +13,7 @@ Graphics = function(canvasId) {
 	ctx = canvas.getContext('2d'),
 	width = canvas.width,
 	height = canvas.height,
-	qbcolor = ['000', 'rgb(0,0,128)', 'rgb(0,128,0)', 'rgb(0,128,128)', 'rgb(128,0,0)', 'rgb(128,0,128)', 'rgb(128,128,0)', 'rgb(204,204,204)', 'rgb(128,128,128)', 'rgb(0,0,255)', 'rgb(0,255,0)', 'rgb(0,255,255)', 'rgb(255,0,0)', 'rgb(255,0,255)', 'rgb(255,255,0)', 'rgb(255,255,255)'],
+	qbcolor = ['rgb(0,0,0)', 'rgb(0,0,128)', 'rgb(0,128,0)', 'rgb(0,128,128)', 'rgb(128,0,0)', 'rgb(128,0,128)', 'rgb(128,128,0)', 'rgb(204,204,204)', 'rgb(128,128,128)', 'rgb(0,0,255)', 'rgb(0,255,0)', 'rgb(0,255,255)', 'rgb(255,0,0)', 'rgb(255,0,255)', 'rgb(255,255,0)', 'rgb(255,255,255)'],
 	ship = new Image(),
 	shipLoaded = false,
 	pixelData = null,
@@ -79,7 +79,8 @@ Graphics = function(canvasId) {
 		drawShip:drawShip,
 		savePixelData:savePixelData,
 		point:point,
-		pset:pset
+		pset:pset,
+        qbColor: qbcolor
 	};
 
 },
@@ -94,13 +95,18 @@ PlanetWars = (function() {
 	cShips = new Graphics('ships'),
 	cMissiles = new Graphics('missiles'),
 	
+    $container = $('container'),
+    $currentPlayer = $('currentPlayer'),
+
 	planets = [],
 	players = [],
-	myPlayerNumber = 0,
+	currentPlayer = 0,
 	lastMessage = 0,
 	missile = { x:0, y:0, velX:0, velY:0, type:0, timer:null },
 	explosion = { x:0, y:0, radius:0, counter:0, timer:null, delta:0 }
 	
+    firingLocked = false;
+
 	MAX_PLANET_SIZE = 70,
 	DEG_TO_RAD = Math.PI / 180,
 	EXPLOSION_BASE = 25,
@@ -169,10 +175,11 @@ PlanetWars = (function() {
 		radius = (missile.type + 1) * EXPLOSION_BASE,
 		size = radius * (explosion.counter / ((missile.type + 1) * FPS / 2));
 		explosion.counter++;
-		
 		cPlanets.circle(explosion.x, explosion.y, size, 0);
 		if (explosion.counter > (missile.type + 1) * FPS / 2) {
 			clearInterval(explosion.timer);
+            firingLocked = false;
+            nextPlayer();
 		}
 		
 	},
@@ -202,6 +209,9 @@ PlanetWars = (function() {
 	
 	fire = function(player, a, v) {
 		
+        // Don't allow the player to fire
+        firingLocked = true;
+
 		// Figure whether the missile fires out the front or back of the ship
 		if (a > 180 && a < 360) {
 			missile.x = players[player].x - 2;
@@ -272,11 +282,71 @@ PlanetWars = (function() {
 	
 	fireClick = function(e) {
 		var
-		a = parseInt($('angle').value) + 90,
-		v = parseInt($('speed').value);
-		fire(myPlayerNumber, a, v);
+    		a = parseInt($('angle').value) + 90,
+    		v = parseInt($('speed').value);
+		if (!firingLocked) {
+            fire(currentPlayer, a, v);
+        }
 	},
+
+    nextPlayer = function() {
+        currentPlayer = (currentPlayer + 1) % players.length;
+        $currentPlayer.innerHTML = players[currentPlayer].name + '\'s turn';
+        $currentPlayer.style.color = cShips.qbColor[currentPlayer + 2];
+    },
 	
+    placeShips = function() {
+        for (var i = 0, count = players.length; i < count; i++) {
+            players[i] = initPlayer(players[i]);
+            players[i].r = 50;
+            good = false;
+            while (!good) {
+                for (var j = 0, p_count = planets.length; j < p_count; j++) {
+                    good = objectIntersect(players[i], planets[j]);
+                    if (!good) {
+                        break;
+                    }
+                }
+                
+                if (!good) {
+                    players[i] = initPlayer(players[i]);
+                }
+                
+            }
+            
+            cShips.drawShip(players[i].x, players[i].y, i + 2);
+            
+        }
+        $container.className = 'in-game';
+
+
+        currentPlayer = -1;
+        nextPlayer();
+
+    },
+
+    setPlayerCount = function() {
+        var count = parseInt($('count').value),
+            i = 0;
+        for (; i < count; i++) {
+            players.push({});
+        }
+        $container.className = 'player-names';
+        $('nameLabel').innerHTML = 'Player 1 Name';
+    },
+
+    addPlayer = function() {
+        var $name = $('name');
+        players[currentPlayer].name = $name.value;
+        currentPlayer++;
+        if (currentPlayer < players.length) {
+            $('nameLabel').innerHTML = 'Player ' + (currentPlayer + 1) + ' Name';
+            $name.value = '';
+        } else {
+            placeShips();
+        }
+    },
+
 	init = function() {
 		cBg.cls();
 		
@@ -308,33 +378,10 @@ PlanetWars = (function() {
 
 		}
 		
-		players.push({});
-		players.push({});
-		players.push({});
-		for (var i = 0, count = players.length; i < count; i++) {
-			players[i] = initPlayer(players[i]);
-			players[i].r = 50;
-			good = false;
-			while (!good) {
-				for (var j = 0, p_count = planets.length; j < p_count; j++) {
-					good = objectIntersect(players[i], planets[j]);
-					if (!good) {
-						break;
-					}
-				}
-				
-				if (!good) {
-					players[i] = initPlayer(players[i]);
-				}
-				
-			}
-			
-			cShips.drawShip(players[i].x, players[i].y, i + 2);
-			
-		}
-		
 		// Bind event listners
-		$('fire').onclick = fireClick;
+		$('fire').addEventListener('click', fireClick);
+        $('toPlayerNames').addEventListener('click', setPlayerCount);
+        $('addPlayer').addEventListener('click', addPlayer);
 		
 	};
 	
